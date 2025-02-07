@@ -8,6 +8,7 @@ export class BoardsController {
 
   @Get()
   async getBoards(): Promise<Board> {
+    console.log('trigger getBoards');
     return this.boardsService.getBoards();
   }
 } 
