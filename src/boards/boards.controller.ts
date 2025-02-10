@@ -17,12 +17,14 @@ export class BoardsController {
 
   @Post()
   async create(@Body() createBoardDto: any) {
-    console.log('createBoardDto', createBoardDto);
-    return this.boardsService.create(createBoardDto);
+    const createdAt = new Date();
+    const updatedAt = new Date();
+    const board = { ...createBoardDto, createdAt, updatedAt, };
+    return this.boardsService.create(board);
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    return { message: 'Board deleted successfully', id };
+    return this.boardsService.delete(id);
   }
 }
