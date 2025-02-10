@@ -29,4 +29,9 @@ export class FirebaseService {
     const snapshot = await this.db.collection(collectionName).get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
+
+  async getDocument(collectionName: string, id: string) {
+    const doc = await this.db.collection(collectionName).doc(id).get();
+    return { id: doc.id, ...doc.data() };
+  }
 }

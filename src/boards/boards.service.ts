@@ -9,6 +9,10 @@ export class BoardsService {
     return await this.firebaseService.getDocuments('boards');
   }
 
+  async findOne(id: string) {
+    return await this.firebaseService.getDocument('boards', id);
+  }
+
   async create(data: any) {
     return await this.firebaseService.addDocument('boards', data);
   }
