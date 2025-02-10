@@ -16,4 +16,8 @@ export class BoardsService {
   async create(data: any) {
     return await this.firebaseService.addDocument('boards', data);
   }
+
+  async delete(id: string) {
+    return await this.firebaseService.deleteDocument('boards', id);
+  }
 }

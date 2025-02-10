@@ -34,4 +34,9 @@ export class FirebaseService {
     const doc = await this.db.collection(collectionName).doc(id).get();
     return { id: doc.id, ...doc.data() };
   }
+
+  async deleteDocument(collectionName: string, id: string) {
+    await this.db.collection(collectionName).doc(id).delete();
+  }
+  
 }
