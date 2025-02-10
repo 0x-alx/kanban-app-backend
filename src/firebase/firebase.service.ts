@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Firestore, getFirestore } from 'firebase-admin/firestore';
 import * as serviceAccount from '../../firebase-adminsdk.json';
 
 @Injectable()
 export class FirebaseService {
-  private db;
+  private db: Firestore;
 
   constructor() {
     if (!admin.apps.length) {
@@ -36,7 +36,20 @@ export class FirebaseService {
   }
 
   async deleteDocument(collectionName: string, id: string) {
+    console.log({ collectionName, id });
     await this.db.collection(collectionName).doc(id).delete();
   }
-  
+
+  async getDocumentsWhere(
+    collectionName: string,
+    field: string,
+    operator: FirebaseFirestore.WhereFilterOp,
+    value: any
+  ) {
+    const snapshot = await this.db
+      .collection(collectionName)
+      .where(field, operator, value)
+      .get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
 }
