@@ -1,6 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { FirebaseService } from '../firebase/firebase.service';
 import { LoggerService } from '../logger/logger.service';
+import { UpdateTaskDto } from './dto/update-task.dto';
+import { Task } from './interfaces/task.interface';
+
+interface FirebaseTask {
+  id: string;
+  title: string;
+  description: string;
+  boardId: string;
+  columnId: string;
+  createdAt: FirebaseFirestore.Timestamp;
+  updatedAt: FirebaseFirestore.Timestamp;
+}
+
 @Injectable()
 export class TasksService {
   constructor(
@@ -8,12 +21,26 @@ export class TasksService {
     private readonly logger: LoggerService,
   ) {}
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Task> {
     this.logger.log(`Fetching task with id: ${id}`, 'TasksService');
     try {
-      const task = await this.firebaseService.getDocument('tasks', id);
-      this.logger.debug(`Task fetched with id: ${id}`, 'TasksService');
-      return task;
+      const task = await this.firebaseService.getDocument<FirebaseTask>('tasks', id);
+      
+      if (!task) {
+        throw new Error(`Task with id ${id} not found`);
+      }
+
+      // Convert Firebase Timestamp to Date
+      return {
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        boardId: task.boardId,
+        columnId: task.columnId,
+        createdAt: task.createdAt?.toDate(),
+        updatedAt: task.updatedAt?.toDate(),
+        subtasks: [], // We'll fetch subtasks separately if needed
+      };
     } catch (error) {
       this.logger.error(`Error fetching task with id: ${id}`, error.stack, 'TasksService');
       throw error;
@@ -42,6 +69,7 @@ export class TasksService {
       throw error;
     }
   }
+
   async findAllTasksByBoardId(boardId: string) {
     this.logger.log(`Fetching all tasks by board id: ${boardId}`, 'TasksService');
     try {
@@ -73,6 +101,34 @@ export class TasksService {
     } catch (error) {
       this.logger.error(
         `Error fetching all tasks by column id: ${columnId}`,
+        error.stack,
+        'TasksService',
+      );
+      throw error;
+    }
+  }
+
+  async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
+    this.logger.log(`Updating task with id: ${id}`, 'TasksService');
+    console.log('updateTaskDto', updateTaskDto);
+    console.log('id', id);
+    console.log('this.findOne(id)', await this.findOne(id));
+    try {
+      const existingTask = await this.findOne(id);
+      
+      const updatedTask = {
+        ...existingTask,
+        ...updateTaskDto,
+        updatedAt: new Date(),
+      };
+
+      await this.firebaseService.updateDocument('tasks', id, updatedTask);
+      
+      this.logger.debug(`Task updated with id: ${id}`, 'TasksService');
+      return updatedTask;
+    } catch (error) {
+      this.logger.error(
+        `Error updating task with id: ${id}`,
         error.stack,
         'TasksService',
       );

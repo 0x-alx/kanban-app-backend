@@ -1,9 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { LoggerService } from '../logger/logger.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksService } from './tasks.service';
+
 @Controller('tasks')
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(private readonly tasksService: TasksService, private readonly logger: LoggerService) {}
 
   @Get('by-column')
   async findAllByColumnId(@Query('columnId') columnId: string) {
@@ -35,5 +38,12 @@ export class TasksController {
   @Delete(':id')
   async delete(@Param('id') id: string) {
     return this.tasksService.delete(id);
+  }
+
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
+    console.log('updateTaskDto', updateTaskDto);
+    this.logger.log(`Updating task with id: ${id}`, 'TasksController');
+    return this.tasksService.update(id, updateTaskDto);
   }
 }

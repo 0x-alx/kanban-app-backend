@@ -30,9 +30,12 @@ export class FirebaseService {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
 
-  async getDocument(collectionName: string, id: string) {
+  async getDocument<T>(collectionName: string, id: string): Promise<T> {
     const doc = await this.db.collection(collectionName).doc(id).get();
-    return { id: doc.id, ...doc.data() };
+    if (!doc.exists) {
+      throw new Error(`Document not found in ${collectionName} with id ${id}`);
+    }
+    return { id: doc.id, ...doc.data() } as T;
   }
 
   async deleteDocument(collectionName: string, id: string) {
@@ -40,16 +43,27 @@ export class FirebaseService {
     await this.db.collection(collectionName).doc(id).delete();
   }
 
-  async getDocumentsWhere(
+  async getDocumentsWhere<T>(
     collectionName: string,
     field: string,
     operator: FirebaseFirestore.WhereFilterOp,
     value: any
-  ) {
+  ): Promise<T[]> {
     const snapshot = await this.db
       .collection(collectionName)
       .where(field, operator, value)
       .get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as T[];
+  }
+
+  async updateDocument<T>(
+    collectionName: string,
+    id: string,
+    data: Partial<T>,
+  ): Promise<void> {
+    await this.db.collection(collectionName).doc(id).update({
+      ...data,
+      updatedAt: new Date(),
+    });
   }
 }
