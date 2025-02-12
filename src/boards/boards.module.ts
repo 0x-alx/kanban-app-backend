@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { BoardsController } from './controllers/boards.controller';
-import { BoardsService } from './services/boards.service';
+import { FirebaseService } from '../firebase/firebase.service';
+import { BoardsController } from './boards.controller';
+import { BoardsService } from './boards.service';
 
 @Module({
   controllers: [BoardsController],
-  providers: [BoardsService],
+  providers: [BoardsService, FirebaseService],
 })
-export class BoardsModule {} 
+export class BoardsModule {}
